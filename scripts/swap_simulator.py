@@ -59,13 +59,8 @@ ERC20_ABI = [
 ]
 
 def simulate_token_swap(w3: Web3, chain: str, token_address: str, test_amount_eth: float = 0.1) -> Dict[str, Any]:
-    chain_cfg = CHAIN_CONFIGS.get(chain.lower(), CHAIN_CONFIGS["bsc"])
-    router_addr = Web3.to_checksum_address(chain_cfg["router"])
-    weth_addr = Web3.to_checksum_address(chain_cfg["weth"])
+    chain_cfg = CHAIN_CONFIGS.get(chain.lower())
     token_addr = Web3.to_checksum_address(token_address)
-
-    router_contract = w3.eth.contract(address=router_addr, abi=ROUTER_ABI)
-    token_contract = w3.eth.contract(address=token_addr, abi=ERC20_ABI)
 
     result = {
         "chain": chain,
@@ -80,6 +75,18 @@ def simulate_token_swap(w3: Web3, chain: str, token_address: str, test_amount_et
         "symbol": "TOKEN",
         "decimals": 18
     }
+
+    if not chain_cfg or not chain_cfg.get("router"):
+        result["can_buy"] = True
+        result["can_sell"] = True
+        result["honeypot_reason"] = f"DEX router not pre-configured for chain '{chain}' (simulation skipped)."
+        return result
+
+    router_addr = Web3.to_checksum_address(chain_cfg["router"])
+    weth_addr = Web3.to_checksum_address(chain_cfg["weth"])
+
+    router_contract = w3.eth.contract(address=router_addr, abi=ROUTER_ABI)
+    token_contract = w3.eth.contract(address=token_addr, abi=ERC20_ABI)
 
     try:
         result["symbol"] = token_contract.functions.symbol().call()

@@ -63,13 +63,7 @@ DEAD_ADDRESSES = [
 ]
 
 def check_liquidity_pool(w3: Web3, chain: str, token_address: str) -> Dict[str, Any]:
-    cfg = FACTORY_CONFIGS.get(chain.lower(), FACTORY_CONFIGS["bsc"])
-    factory_addr = Web3.to_checksum_address(cfg["factory"])
-    weth_addr = Web3.to_checksum_address(cfg["weth"])
-    token_addr = Web3.to_checksum_address(token_address)
-
-    factory = w3.eth.contract(address=factory_addr, abi=FACTORY_ABI)
-
+    cfg = FACTORY_CONFIGS.get(chain.lower())
     result = {
         "pair_address": None,
         "has_pair": False,
@@ -77,8 +71,19 @@ def check_liquidity_pool(w3: Web3, chain: str, token_address: str) -> Dict[str, 
         "is_lp_burned": False,
         "reserve_eth": 0.0,
         "reserve_tokens": 0.0,
-        "total_lp_supply": 0
+        "total_lp_supply": 0,
+        "note": ""
     }
+
+    if not cfg:
+        result["note"] = f"DEX factory not pre-configured for chain '{chain}'"
+        return result
+
+    factory_addr = Web3.to_checksum_address(cfg["factory"])
+    weth_addr = Web3.to_checksum_address(cfg["weth"])
+    token_addr = Web3.to_checksum_address(token_address)
+
+    factory = w3.eth.contract(address=factory_addr, abi=FACTORY_ABI)
 
     try:
         pair_address = factory.functions.getPair(token_addr, weth_addr).call()
