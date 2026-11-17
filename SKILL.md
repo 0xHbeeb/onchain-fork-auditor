@@ -15,7 +15,7 @@ description: Autonomous multi-chain smart contract security auditor and zero-cos
    - Inspects `mintAuthority` (detects infinite mint/supply dilution risks).
    - Inspects `freezeAuthority` (detects honeypot vectors that can freeze user token accounts).
    - Scans Token-2022 extensions (`transferHook`, `permanentDelegate`, `defaultAccountState`).
-   - Integrates Raydium, Orca, and Pump.fun liquidity metrics via DexScreener.
+   - Tracks **Meteora DLMM & Dynamic AMM** pools, Raydium, Orca, and Pump.fun liquidity metrics with live TVL and volume.
 
 2. **Bytecode & Opcode Disassembly (`bytecode_inspector.py`)**:
    - Analyzes runtime bytecode and function dispatcher selectors.

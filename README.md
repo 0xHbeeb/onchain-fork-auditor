@@ -20,7 +20,8 @@ Engineered for security researchers, memecoin traders, and autonomous AI agents 
   - **Mint Authority**: Confirms whether mint authority is revoked or retained (preventing infinite mint/supply dilution).
   - **Freeze Authority (Honeypot)**: Flags retained freeze authority capable of freezing holder token accounts.
   - **Token-2022 Extensions**: Detects `transferHook` (malicious transfer vetoes/tax traps), `permanentDelegate` (token confiscation), and default account state anomalies.
-  - **DEX & Market Integration**: Automatically queries Raydium, Orca, and Pump.fun liquidity pools via DexScreener to verify active volume and locked TVL.
+  - **Meteora DLMM & Dynamic AMM Tracking**: Dedicated detection for Meteora liquidity pools, distinguishing between DLMM bins and Dynamic Pools, tracking TVL, pool count, 24h volume, and top pool addresses.
+  - **Multi-DEX Aggregation**: Real-time cross-venue TVL aggregation across **Meteora**, **Raydium**, **Orca**, and **Pump.fun**.
 - **EVM Bytecode & Selector Decompilation**: 
   - Scans raw runtime bytecode directly from RPC nodes. Extracts 4-byte function selectors and cross-references them against an offensive signatures database (blacklists, trading toggles, balance overrides, hidden mints, fee setters).
   - Traces dangerous opcodes: `DELEGATECALL` (proxy logic hijacking) and `SELFDESTRUCT` (contract annihilation).
@@ -39,7 +40,7 @@ Engineered for security researchers, memecoin traders, and autonomous AI agents 
 
 | Network / Chain | Architecture | Default DEX / Liquidity | Native Currency | Default Public RPC |
 | :--- | :--- | :--- | :--- | :--- |
-| **Solana (`sol`)** | SVM / SPL & Token-2022 | Raydium / Orca / Pump.fun | `SOL` | `api.mainnet-beta.solana.com` |
+| **Solana (`sol`)** | SVM / SPL & Token-2022 | Meteora (DLMM & AMM) / Raydium / Orca / Pump.fun | `SOL` | `api.mainnet-beta.solana.com` |
 | **Robinhood Chain (`robinhood`)** | EVM (Arbitrum Orbit L2) | DEX / Bridge | `ETH` | `rpc.mainnet.chain.robinhood.com` |
 | **Elysium Chain (`elysium`)** | EVM (Vulcan Forged L1) | Elysium DEX | `LAVA` / `PYR` | `rpc.elysiumchain.tech` |
 | **BNB Smart Chain (`bsc`)** | EVM | PancakeSwap V2 | `BNB` | `bsc-dataseed.binance.org` |
@@ -119,17 +120,41 @@ Sample Solana JSON Output:
   "score": 100,
   "verdict": "SAFE",
   "severity": "LOW",
-  "market": {
+  "liquidity": {
     "has_dex": true,
-    "dex": "orca",
-    "pair_address": "5zpyutJu9ee6jFymDGoK7F6S5Kczqtc9FomP3ueKuyA9",
-    "liquidity_usd": 230577.22,
-    "price_usd": 0.00000233,
-    "volume_24h": 155500.97
+    "total_liquidity_usd": 4350511.05,
+    "primary_dex": "METEORA",
+    "token_name": "Jupiter",
+    "token_symbol": "JUP",
+    "price_usd": 0.2519,
+    "meteora": {
+      "has_pool": true,
+      "pool_count": 18,
+      "total_liquidity_usd": 3716975.41,
+      "top_pair_address": "C8Gr6AUuq9hEdSYJzoEpNcdjpojPZwqG5MtQbeouNNwg",
+      "pool_type": "DLMM",
+      "quote_symbol": "SOL",
+      "volume_24h": 1458397.38
+    },
+    "raydium": {
+      "has_pool": true,
+      "pool_count": 5,
+      "total_liquidity_usd": 77889.76
+    },
+    "orca": {
+      "has_pool": true,
+      "pool_count": 6,
+      "total_liquidity_usd": 555645.88
+    },
+    "pumpfun": {
+      "has_pool": false,
+      "total_liquidity_usd": 0.0
+    }
   },
   "flags": [
     "MINT_AUTHORITY_REVOKED: Immutable supply confirmed",
-    "FREEZE_AUTHORITY_REVOKED: Accounts cannot be frozen"
+    "FREEZE_AUTHORITY_REVOKED: Accounts cannot be frozen",
+    "METEORA_LP_VERIFIED: 18 active Meteora DLMM pool(s) found ($3,716,975.41 TVL)"
   ]
 }
 ```
